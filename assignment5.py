@@ -153,14 +153,18 @@ class CSP:
         in 'assignment' that have not yet been decided, i.e. whose list
         of legal values has a length greater than one.
         """
-        # TODO: IMPLEMENT THIS
+        # Placeholder values
         lowest_var = None
         lowest_values = 10
+        # For every variable in the assignment
         for a in assignment.keys():
             legal_values = len(assignment[a])
+            # If the current variable has less valid values than the previous
             if legal_values != 1 and legal_values < lowest_values:
+                # Set the new proposed least values
                 lowest_values = legal_values
                 lowest_var = a
+        # Return MRV
         return lowest_var
 
     def inference(self, assignment, queue):
