@@ -178,6 +178,7 @@ class CSP:
             # Get the first one
             (xi,xj) = queue.pop()
             # Revise the arc
+            # This prunes all values that are no longer valid
             if self.revise(assignment, xi, xj):
                 # Return False if the domain for the variable is 0
                 # This means that the variable has no legal values (which is not possible)
@@ -203,7 +204,10 @@ class CSP:
         legal values in 'assignment'.
         """
         revised = False
+        # Get constraints for the given arc
         constraints = self.constraints[i][j]
+        # For all valid values for i and j test if there is a value-pair that
+        # satisfies a constraint.
         for x in assignment[i]:
             satisfied = 0
             for c in constraints:
@@ -211,6 +215,9 @@ class CSP:
                     if (x, d) == c:
                         satisfied = 1
                         break
+            # If such a pair does not exist: remove the value from possible values
+            # Return true since the amount possible values is reduced and therefore
+            # the size of the problem
             if not satisfied:
                 assignment[i].remove(x)
                 revised = True
