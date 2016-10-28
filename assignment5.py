@@ -112,27 +112,38 @@ class CSP:
         assignments and inferences that took place in previous
         iterations of the loop.
         """
+        # Test if solution is complete
         self.backtracked += 1
-        complete = 1
+        complete = True
         for a in assignment.keys():
             if len(assignment[a]) != 1:
-                complete = 0
+                complete = False
                 break
         if complete:
             return assignment
 
+        # Select a variable/node that is currently not decided
         var = self.select_unassigned_variable(assignment)
+        # For every possible value of the node
         for value in assignment[var]:
+            # Create a copy of the current assignment
             tmp_assignment = copy.deepcopy(assignment)
+            # Set our variable to the proposed value
             tmp_assignment[var] = [value]
+            # Check if value is valid
             if value in self.domains[var]:
+                # Test if value passes constraint test
                 inferences = self.inference(tmp_assignment, self.get_all_arcs())
                 if inferences:
+                    # Backtrack recursively to build the tree further
                     result = self.backtrack(tmp_assignment)
+                    # If the new tree is valid: return it
                     if result is not False:
                         return result
+                # The proposed value is now tested, so remove it from the domain
                 self.domains[var].remove(value)
 
+        # Tree is not valid so increment the counter and return False
         self.backtracked_failure += 1
         return False
 
