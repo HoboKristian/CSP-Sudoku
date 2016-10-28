@@ -133,7 +133,8 @@ class CSP:
             # Check if value is valid
             if value in self.domains[var]:
                 # Test if value passes constraint test
-                inferences = self.inference(tmp_assignment, self.get_all_arcs())
+                # Only test the neighboring arcs
+                inferences = self.inference(tmp_assignment, self.get_all_neighboring_arcs(var))
                 if inferences:
                     # Backtrack recursively to build the tree further
                     result = self.backtrack(tmp_assignment)
@@ -182,12 +183,12 @@ class CSP:
             if self.revise(assignment, xi, xj):
                 # Return False if the domain for the variable is 0
                 # This means that the variable has no legal values (which is not possible)
-                # and therefore is the tree invalid
+                # and therefore the tree is invalid
                 if len(self.domains[xi]) == 0:
                     return False
                 # Get all arcs to neighboring variables
                 neighbors = self.get_all_neighboring_arcs(xi)
-                # Add these to the queue if they are not tested yet
+                # Add these to the queue if they have not been tested yet
                 for xk in neighbors:
                     if xk != (xi, xj):
                         queue.append(xk)
