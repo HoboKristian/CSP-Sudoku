@@ -173,16 +173,24 @@ class CSP:
         the lists of legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
-        # TODO: IMPLEMENT THIS
+        # Test all variables in the queue of variables/nodes
         while len(queue) != 0:
+            # Get the first one
             (xi,xj) = queue.pop()
+            # Revise the arc
             if self.revise(assignment, xi, xj):
+                # Return False if the domain for the variable is 0
+                # This means that the variable has no legal values (which is not possible)
+                # and therefore is the tree invalid
                 if len(self.domains[xi]) == 0:
                     return False
+                # Get all arcs to neighboring variables
                 neighbors = self.get_all_neighboring_arcs(xi)
+                # Add these to the queue if they are not tested yet
                 for xk in neighbors:
                     if xk != (xi, xj):
                         queue.append(xk)
+        # The tree passed and is valid
         return True
 
     def revise(self, assignment, i, j):
