@@ -8,6 +8,9 @@ class CSP:
         # self.variables is a list of the variable names in the CSP
         self.variables = []
 
+        self.backtracked = 0
+        self.backtracked_failure = 0
+
         # self.domains[i] is a list of legal values for variable i
         self.domains = {}
 
@@ -109,6 +112,7 @@ class CSP:
         assignments and inferences that took place in previous
         iterations of the loop.
         """
+        self.backtracked += 1
         complete = 1
         for a in assignment.keys():
             if len(assignment[a]) != 1:
@@ -117,14 +121,20 @@ class CSP:
         if complete:
             return assignment
 
-        assignment = copy.deepcopy(assignment)
-
         var = self.select_unassigned_variable(assignment)
+        for value in assignment[var]:
+            tmp_assignment = copy.deepcopy(assignment)
+            tmp_assignment[var] = [value]
+            if value in self.domains[var]:
+                inferences = self.inference(tmp_assignment, self.get_all_arcs())
+                if inferences:
+                    result = self.backtrack(tmp_assignment)
+                    if result is not False:
+                        return result
+                self.domains[var].remove(value)
 
-
-        print(assignment)
-        # TODO: IMPLEMENT THIS
-        pass
+        self.backtracked_failure += 1
+        return False
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -133,11 +143,14 @@ class CSP:
         of legal values has a length greater than one.
         """
         # TODO: IMPLEMENT THIS
+        lowest_var = None
+        lowest_values = 10
         for a in assignment.keys():
-            tmp = assignment[a]
-            if len(tmp) != 1:
-                return tmp
-        return None
+            legal_values = len(assignment[a])
+            if legal_values != 1 and legal_values < lowest_values:
+                lowest_values = legal_values
+                lowest_var = a
+        return lowest_var
 
     def inference(self, assignment, queue):
         """The function 'AC-3' from the pseudocode in the textbook.
@@ -148,15 +161,14 @@ class CSP:
         # TODO: IMPLEMENT THIS
         while len(queue) != 0:
             (xi,xj) = queue.pop()
-            if revise(assignment, xi, xj):
+            if self.revise(assignment, xi, xj):
                 if len(self.domains[xi]) == 0:
-                    return 0
+                    return False
                 neighbors = self.get_all_neighboring_arcs(xi)
-                del neighbors[xj]
                 for xk in neighbors:
-                    queue.append((xk, xi))
-        return 1
-        pass
+                    if xk != (xi, xj):
+                        queue.append(xk)
+        return True
 
     def revise(self, assignment, i, j):
         """The function 'Revise' from the pseudocode in the textbook.
@@ -167,8 +179,19 @@ class CSP:
         between i and j, the value should be deleted from i's list of
         legal values in 'assignment'.
         """
-        # TODO: IMPLEMENT THIS
-        pass
+        revised = False
+        constraints = self.constraints[i][j]
+        for x in assignment[i]:
+            satisfied = 0
+            for c in constraints:
+                for d in assignment[j]:
+                    if (x, d) == c:
+                        satisfied = 1
+                        break
+            if not satisfied:
+                assignment[i].remove(x)
+                revised = True
+        return revised
 
 def create_map_coloring_csp():
     """Instantiate a CSP representing the map coloring problem from the
@@ -229,6 +252,13 @@ def print_sudoku_solution(solution):
         if row == 2 or row == 5:
             print '------+-------+------'
 
+boards = ["easy", "medium", "hard", "veryhard"]
 
-sudoku = create_sudoku_csp("sudokus/easy.txt")
-sudoku.backtracking_search()
+for board in boards:
+    print("board: " + board)
+    sudoku = create_sudoku_csp("sudokus/" + board + ".txt")
+    solution = sudoku.backtracking_search()
+    if solution is not False:
+        print_sudoku_solution(solution)
+    print(sudoku.backtracked, sudoku.backtracked_failure)
+
